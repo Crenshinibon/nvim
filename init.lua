@@ -572,7 +572,10 @@ require("lazy").setup({
 				-- But for many setups, the LSP (`tsserver`) will work just fine
 				tsserver = {
 					single_file_support = false,
-					root_dir = require("lspconfig").util.root_pattern("tsconfig.json"),
+					root_dir = function()
+						local util = require("lspconfig").util
+						return util.root_pattern("tsconfig.json") and not util.root_pattern("svelte.config.js")
+					end,
 				},
 				denols = {
 					single_file_support = false,
@@ -582,6 +585,16 @@ require("lazy").setup({
 					single_file_support = false,
 					filetypes = { "typescript", "javascript", "svelte", "html", "css" },
 					root_dir = require("lspconfig").util.root_pattern("svelte.config.js"),
+					on_attach = function(client, _)
+						-- this works: print("something")
+						vim.api.nvim_create_autocmd("BufWritePost", {
+							pattern = { "*.js", "*.ts" },
+							callback = function(ctx)
+								-- Here use ctx.match instead of ctx.file
+								client.notify("$/onDidChangeTsOrJsFile", { uri = ctx.match })
+							end,
+						})
+					end,
 				},
 				--
 
@@ -595,7 +608,7 @@ require("lazy").setup({
 								callSnippet = "Replace",
 							},
 							-- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-							-- diagnostics = { disable = { 'missing-fields' } },
+							diagnostics = { disable = { "missing-fields" } },
 						},
 					},
 				},
@@ -846,7 +859,19 @@ require("lazy").setup({
 		build = ":TSUpdate",
 		lazy = false,
 		opts = {
-			ensure_installed = { "bash", "c", "html", "lua", "luadoc", "markdown", "vim", "vimdoc" },
+			ensure_installed = {
+				"bash",
+				"c",
+				"html",
+				"css",
+				"svelte",
+				"go",
+				"lua",
+				"luadoc",
+				"markdown",
+				"vim",
+				"vimdoc",
+			},
 			-- Autoinstall languages that are not installed
 			auto_install = true,
 			highlight = {
