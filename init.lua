@@ -596,8 +596,10 @@ require("lazy").setup({
 						})
 					end,
 				},
-				--
-
+				helm_ls = {},
+				yamlls = {
+					autostart = false,
+				},
 				lua_ls = {
 					-- cmd = {...},
 					-- filetypes = { ...},
@@ -645,6 +647,9 @@ require("lazy").setup({
 		end,
 	},
 
+	{ -- Helm support
+		"towolf/vim-helm",
+	},
 	{ -- Autoformat
 		"stevearc/conform.nvim",
 		lazy = false,
