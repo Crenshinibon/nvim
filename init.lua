@@ -148,6 +148,18 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
 	-- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
 	{
+		"NeogitOrg/neogit",
+		dependencies = {
+			"nvim-lua/plenary.nvim", -- required
+			"sindrets/diffview.nvim", -- optional - Diff integration
+
+			-- Only one of these is needed, not both.
+			"nvim-telescope/telescope.nvim", -- optional
+			--"ibhagwan/fzf-lua",              -- optional
+		},
+		config = true,
+	},
+	{
 		"nvim-tree/nvim-tree.lua",
 		lazy = false,
 		dependencies = {
@@ -573,8 +585,8 @@ require("lazy").setup({
 				tsserver = {
 					single_file_support = false,
 					root_dir = function()
-						local util = require("lspconfig").util
-						return util.root_pattern("tsconfig.json") and not util.root_pattern("svelte.config.js")
+						return require("lspconfig").util.root_pattern("tsconfig.json")
+							and not require("lspconfig").util.root_pattern("svelte.config.js")
 					end,
 				},
 				denols = {
@@ -649,6 +661,9 @@ require("lazy").setup({
 
 	{ -- Helm support
 		"towolf/vim-helm",
+	},
+	{
+		"tpope/vim-fugitive",
 	},
 	{ -- Autoformat
 		"stevearc/conform.nvim",
