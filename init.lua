@@ -160,6 +160,9 @@ require("lazy").setup({
 		config = true,
 	},
 	{
+		"kevinhwang91/nvim-ufo",
+	},
+	{
 		"nvim-tree/nvim-tree.lua",
 		lazy = false,
 		dependencies = {
@@ -169,6 +172,14 @@ require("lazy").setup({
 		},
 		version = "*",
 		opts = {
+			view = {
+				preserve_window_proportions = true,
+			},
+			actions = {
+				open_file = {
+					resize_window = true,
+				},
+			},
 			disable_netrw = true,
 			on_attach = function(bufnr)
 				local api = require("nvim-tree.api")
