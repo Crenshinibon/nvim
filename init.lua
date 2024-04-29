@@ -397,6 +397,32 @@ require("lazy").setup({
 							vim.lsp.inlay_hint.enable(0, not vim.lsp.inlay_hint.is_enabled())
 						end, "[T]oggle Inlay [H]ints")
 					end
+
+					-- Disable tsserver and svelte lsp for deno projects
+					if require("lspconfig").util.root_pattern("deno.json", "import_map.json")(vim.fn.getcwd()) then
+						print("disable tsserver")
+						if client.name == "tsserver" then
+							client.stop()
+							return
+						end
+						if client.name == "svelte" then
+							client.stop()
+							return
+						end
+					end
+
+					-- disable tsserver and denols for svelte projects
+					if require("lspconfig").util.root_pattern("svelte.config.js")(vim.fn.getcwd()) then
+						print("disable tsserver")
+						if client.name == "tsserver" then
+							client.stop()
+							return
+						end
+						if client.name == "denols" then
+							client.stop()
+							return
+						end
+					end
 				end,
 			})
 
@@ -429,10 +455,7 @@ require("lazy").setup({
 				-- But for many setups, the LSP (`tsserver`) will work just fine
 				tsserver = {
 					single_file_support = false,
-					root_dir = function()
-						return require("lspconfig").util.root_pattern("tsconfig.json")
-							and not require("lspconfig").util.root_pattern("svelte.config.js")
-					end,
+					root_dir = require("lspconfig").util.root_pattern("package.json"),
 				},
 				denols = {
 					single_file_support = false,
