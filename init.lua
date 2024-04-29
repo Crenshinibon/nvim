@@ -134,6 +134,49 @@ if not vim.loop.fs_stat(lazypath) then
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
+--local ufodesc = require("utils").plugin_keymap_desc("ufo")
+local function mapOpts(desc, bufnr)
+	bufnr = bufnr or 0
+	return {
+		desc = "nvim-tree: " .. desc,
+		buffer = bufnr,
+		noremap = true,
+		silent = true,
+		nowait = true,
+	}
+end
+
+-- Custom fold text handler for ufo showing line count folded
+local ufohandler = function(virtText, lnum, endLnum, width, truncate)
+	local newVirtText = {}
+	local suffix = (" 󰁂 %d "):format(endLnum - lnum)
+	local sufWidth = vim.fn.strdisplaywidth(suffix)
+	local targetWidth = width - sufWidth
+	local curWidth = 0
+
+	for _, chunk in ipairs(virtText) do
+		local chunkText = chunk[1]
+		local chunkWidth = vim.fn.strdisplaywidth(chunkText)
+		if targetWidth > curWidth + chunkWidth then
+			table.insert(newVirtText, chunk)
+		else
+			chunkText = truncate(chunkText, targetWidth - curWidth)
+			local hlGroup = chunk[2]
+			table.insert(newVirtText, { chunkText, hlGroup })
+			chunkWidth = vim.fn.strdisplaywidth(chunkText)
+			-- str width returned from truncate() may less than 2nd argument, need padding
+			if curWidth + chunkWidth < targetWidth then
+				suffix = suffix .. (" "):rep(targetWidth - curWidth - chunkWidth)
+			end
+			break
+		end
+		curWidth = curWidth + chunkWidth
+	end
+
+	table.insert(newVirtText, { suffix, "MoreMsg" })
+	return newVirtText
+end
+
 -- [[ Configure and install plugins ]]
 --
 --  To check the current status of your plugins, run
@@ -152,7 +195,6 @@ require("lazy").setup({
 		dependencies = {
 			"nvim-lua/plenary.nvim", -- required
 			"sindrets/diffview.nvim", -- optional - Diff integration
-
 			-- Only one of these is needed, not both.
 			"nvim-telescope/telescope.nvim", -- optional
 			--"ibhagwan/fzf-lua",              -- optional
@@ -161,278 +203,70 @@ require("lazy").setup({
 	},
 	{
 		"kevinhwang91/nvim-ufo",
-	},
-	{
-		"nvim-tree/nvim-tree.lua",
-		lazy = false,
-		dependencies = {
-			"nvim-tree/nvim-web-devicons",
-			"antosha417/nvim-lsp-file-operations",
-			"echasnovski/mini.base16",
-		},
-		version = "*",
+		dependencies = { "kevinhwang91/promise-async" },
 		opts = {
-			view = {
-				preserve_window_proportions = true,
-			},
-			actions = {
-				open_file = {
-					resize_window = true,
-				},
-			},
-			disable_netrw = true,
-			on_attach = function(bufnr)
-				local api = require("nvim-tree.api")
-				local function opts(desc)
-					return {
-						desc = "nvim-tree: " .. desc,
-						buffer = bufnr,
-						noremap = true,
-						silent = true,
-						nowait = true,
-					}
+			fold_virt_text_handler = ufohandler,
+		},
+		init = function()
+			-- interesting values ... but they help to keep the folds open on change mode!
+			vim.opt.foldlevel = 99
+			vim.opt.foldlevelstart = 99
+		end,
+		config = function(_, opts)
+			local ufo = require("ufo")
+			vim.keymap.set("n", "zR", require("ufo").openAllFolds)
+			--just some test
+			vim.keymap.set("n", "zM", require("ufo").closeAllFolds)
+			--vim.keymap.set("n", "zr", require("ufo").openFoldsExceptKinds)
+			--vim.keymap.set("n", "zm", require("ufo").closeFoldsWith) -- closeAllFolds == closeFoldsWith(0)
+			vim.keymap.set("n", "zK", function()
+				local winid = require("ufo").peekFoldedLinesUnderCursor()
+				if not winid then
+					-- choose one of coc.nvim and nvim lsp
+					--vim.fn.CocActionAsync('definitionHover') -- coc.nvim
+					vim.lsp.buf.hover()
 				end
+			end, { desc = "SneakPeak Fold" })
+			--ufo.setup(opts)
 
-				-- BEGIN_DEFAULT_ON_ATTACH
-				vim.keymap.set("n", "<C-]>", api.tree.change_root_to_node, opts("CD"))
-				vim.keymap.set("n", "<C-e>", api.node.open.replace_tree_buffer, opts("Open: In Place"))
-				vim.keymap.set("n", "<C-k>", api.node.show_info_popup, opts("Info"))
-				vim.keymap.set("n", "<C-r>", api.fs.rename_sub, opts("Rename: Omit Filename"))
-				--vim.keymap.set("n", "<C-t>", api.node.open.tab, opts("Open: New Tab"))
-				vim.keymap.set("n", "<C-v>", api.node.open.vertical, opts("Open: Vertical Split"))
-				vim.keymap.set("n", "<C-x>", api.node.open.horizontal, opts("Open: Horizontal Split"))
-				vim.keymap.set("n", "<BS>", api.node.navigate.parent_close, opts("Close Directory"))
-				vim.keymap.set("n", "<CR>", api.node.open.edit, opts("Open"))
-				vim.keymap.set("n", "<Tab>", api.node.open.preview, opts("Open Preview"))
-				vim.keymap.set("n", ">", api.node.navigate.sibling.next, opts("Next Sibling"))
-				vim.keymap.set("n", "<", api.node.navigate.sibling.prev, opts("Previous Sibling"))
-				vim.keymap.set("n", ".", api.node.run.cmd, opts("Run Command"))
-				vim.keymap.set("n", "-", api.tree.change_root_to_parent, opts("Up"))
-				vim.keymap.set("n", "a", api.fs.create, opts("Create File Or Directory"))
-				vim.keymap.set("n", "bd", api.marks.bulk.delete, opts("Delete Bookmarked"))
-				vim.keymap.set("n", "bt", api.marks.bulk.trash, opts("Trash Bookmarked"))
-				vim.keymap.set("n", "bmv", api.marks.bulk.move, opts("Move Bookmarked"))
-				vim.keymap.set("n", "B", api.tree.toggle_no_buffer_filter, opts("Toggle Filter: No Buffer"))
-				vim.keymap.set("n", "c", api.fs.copy.node, opts("Copy"))
-				vim.keymap.set("n", "C", api.tree.toggle_git_clean_filter, opts("Toggle Filter: Git Clean"))
-				vim.keymap.set("n", "[c", api.node.navigate.git.prev, opts("Prev Git"))
-				vim.keymap.set("n", "]c", api.node.navigate.git.next, opts("Next Git"))
-				vim.keymap.set("n", "d", api.fs.remove, opts("Delete"))
-				vim.keymap.set("n", "D", api.fs.trash, opts("Trash"))
-				vim.keymap.set("n", "E", api.tree.expand_all, opts("Expand All"))
-				vim.keymap.set("n", "e", api.fs.rename_basename, opts("Rename: Basename"))
-				vim.keymap.set("n", "]e", api.node.navigate.diagnostics.next, opts("Next Diagnostic"))
-				vim.keymap.set("n", "[e", api.node.navigate.diagnostics.prev, opts("Prev Diagnostic"))
-				vim.keymap.set("n", "F", api.live_filter.clear, opts("Live Filter: Clear"))
-				vim.keymap.set("n", "f", api.live_filter.start, opts("Live Filter: Start"))
-				vim.keymap.set("n", "g?", api.tree.toggle_help, opts("Help"))
-				vim.keymap.set("n", "gy", api.fs.copy.absolute_path, opts("Copy Absolute Path"))
-				vim.keymap.set("n", "ge", api.fs.copy.basename, opts("Copy Basename"))
-				vim.keymap.set("n", "H", api.tree.toggle_hidden_filter, opts("Toggle Filter: Dotfiles"))
-				vim.keymap.set("n", "I", api.tree.toggle_gitignore_filter, opts("Toggle Filter: Git Ignore"))
-				vim.keymap.set("n", "J", api.node.navigate.sibling.last, opts("Last Sibling"))
-				vim.keymap.set("n", "K", api.node.navigate.sibling.first, opts("First Sibling"))
-				vim.keymap.set("n", "L", api.node.open.toggle_group_empty, opts("Toggle Group Empty"))
-				vim.keymap.set("n", "M", api.tree.toggle_no_bookmark_filter, opts("Toggle Filter: No Bookmark"))
-				vim.keymap.set("n", "m", api.marks.toggle, opts("Toggle Bookmark"))
-				vim.keymap.set("n", "o", api.node.open.edit, opts("Open"))
-				vim.keymap.set("n", "O", api.node.open.no_window_picker, opts("Open: No Window Picker"))
-				vim.keymap.set("n", "p", api.fs.paste, opts("Paste"))
-				vim.keymap.set("n", "P", api.node.navigate.parent, opts("Parent Directory"))
-				vim.keymap.set("n", "q", api.tree.close, opts("Close"))
-				vim.keymap.set("n", "r", api.fs.rename, opts("Rename"))
-				vim.keymap.set("n", "R", api.tree.reload, opts("Refresh"))
-				vim.keymap.set("n", "s", api.node.run.system, opts("Run System"))
-				vim.keymap.set("n", "S", api.tree.search_node, opts("Search"))
-				vim.keymap.set("n", "u", api.fs.rename_full, opts("Rename: Full Path"))
-				vim.keymap.set("n", "U", api.tree.toggle_custom_filter, opts("Toggle Filter: Hidden"))
-				vim.keymap.set("n", "W", api.tree.collapse_all, opts("Collapse"))
-				vim.keymap.set("n", "x", api.fs.cut, opts("Cut"))
-				vim.keymap.set("n", "y", api.fs.copy.filename, opts("Copy Name"))
-				vim.keymap.set("n", "Y", api.fs.copy.relative_path, opts("Copy Relative Path"))
-				vim.keymap.set("n", "<2-LeftMouse>", api.node.open.edit, opts("Open"))
-				vim.keymap.set("n", "<2-RightMouse>", api.tree.change_root_to_node, opts("CD"))
-				-- END_DEFAULT_ON_ATTACH
-			end,
-		},
-	},
-	"tpope/vim-sleuth", -- Detect tabstop and shiftwidth automatically
+			--vim.keymap.set("n", "zR", ufo.openAllFolds, { desc = "Open all folds" })
+			--vim.keymap.set("n", "zM", ufo.closeAllFolds, { desc = "Close all folds" })
+			--[[vim.keymap.set("n", "K", function()
+			--	local winid = ufo.peekFoldedLinesUnderCursor(true)
+				if not winid then
+					vim.lsp.buf.hover()
+				end
+			end, { desc = "LSP: Show hover documentation and folded code" })--]]
 
-	-- NOTE: Plugins can also be added by using a table,
-	-- with the first argument being the link and the following
-	-- keys can be used to configure plugin behavior/loading/etc.
-	--
-	-- Use `opts = {}` to force a plugin to be loaded.
-	--
-	--  This is equivalent to:
-	--    require('Comment').setup({})
-
-	-- "gc" to comment visual regions/lines
-	{ "numToStr/Comment.nvim", opts = {} },
-
-	-- Here is a more advanced example where we pass configuration
-	-- options to `gitsigns.nvim`. This is equivalent to the following Lua:
-	--    require('gitsigns').setup({ ... })
-	--
-	-- See `:help gitsigns` to understand what the configuration keys do
-	{ -- Adds git related signs to the gutter, as well as utilities for managing changes
-		"lewis6991/gitsigns.nvim",
-		opts = {
-			signs = {
-				add = { text = "+" },
-				change = { text = "~" },
-				delete = { text = "_" },
-				topdelete = { text = "‾" },
-				changedelete = { text = "~" },
-			},
-		},
-	},
-
-	-- NOTE: Plugins can also be configured to run Lua code when they are loaded.
-	--
-	-- This is often very useful to both group configuration, as well as handle
-	-- lazy loading plugins that don't need to be loaded immediately at startup.
-	--
-	-- For example, in the following configuration, we use:
-	--  event = 'VimEnter'
-	--
-	-- which loads which-key before all the UI elements are loaded. Events can be
-	-- normal autocommands events (`:help autocmd-events`).
-	--
-	-- Then, because we use the `config` key, the configuration only runs
-	-- after the plugin has been loaded:
-	--  config = function() ... end
-
-	{ -- Useful plugin to show you pending keybinds.
-		"folke/which-key.nvim",
-		event = "VimEnter", -- Sets the loading event to 'VimEnter'
-		config = function() -- This is the function that runs, AFTER loading
-			require("which-key").setup()
-
-			-- Document existing key chains
-			require("which-key").register({
-				["<leader>c"] = { name = "[C]ode", _ = "which_key_ignore" },
-				["<leader>d"] = { name = "[D]ocument", _ = "which_key_ignore" },
-				["<leader>r"] = { name = "[R]ename", _ = "which_key_ignore" },
-				["<leader>s"] = { name = "[S]earch", _ = "which_key_ignore" },
-				["<leader>w"] = { name = "[W]orkspace", _ = "which_key_ignore" },
-				["<leader>t"] = { name = "[T]oggle", _ = "which_key_ignore" },
-			})
+			local capabilities = vim.lsp.protocol.make_client_capabilities()
+			capabilities.textDocument.foldingRange = {
+				dynamicRegistration = false,
+				lineFoldingOnly = true,
+			}
+			local language_servers = require("lspconfig").util.available_servers() -- or list servers manually like {'gopls', 'clangd'}
+			for _, ls in ipairs(language_servers) do
+				require("lspconfig")[ls].setup({
+					capabilities = capabilities,
+					-- you can add other fields for setting up lsp server in this table
+				})
+			end
+			ufo.setup(opts)
 		end,
 	},
-
-	-- NOTE: Plugins can specify dependencies.
-	--
-	-- The dependencies are proper plugin specifications as well - anything
-	-- you do for a plugin at the top level, you can do for a dependency.
-	--
-	-- Use the `dependencies` key to specify the dependencies of a particular plugin
-
-	{ -- Fuzzy Finder (files, lsp, etc)
-		"nvim-telescope/telescope.nvim",
-		event = "VimEnter",
-		branch = "0.1.x",
-		dependencies = {
-			"nvim-lua/plenary.nvim",
-			{ -- If encountering errors, see telescope-fzf-native README for installation instructions
-				"nvim-telescope/telescope-fzf-native.nvim",
-
-				-- `build` is used to run some command when the plugin is installed/updated.
-				-- This is only run then, not every time Neovim starts up.
-				build = "make",
-
-				-- `cond` is a condition used to determine whether this plugin should be
-				-- installed and loaded.
-				cond = function()
-					return vim.fn.executable("make") == 1
-				end,
-			},
-			{ "nvim-telescope/telescope-ui-select.nvim" },
-
-			-- Useful for getting pretty icons, but requires a Nerd Font.
-			{ "nvim-tree/nvim-web-devicons", enabled = vim.g.have_nerd_font },
-		},
+	--[[{
+		"luukvbaal/statuscol.nvim",
 		config = function()
-			-- Telescope is a fuzzy finder that comes with a lot of different things that
-			-- it can fuzzy find! It's more than just a "file finder", it can search
-			-- many different aspects of Neovim, your workspace, LSP, and more!
-			--
-			-- The easiest way to use Telescope, is to start by doing something like:
-			--  :Telescope help_tags
-			--
-			-- After running this command, a window will open up and you're able to
-			-- type in the prompt window. You'll see a list of `help_tags` options and
-			-- a corresponding preview of the help.
-			--
-			-- Two important keymaps to use while in Telescope are:
-			--  - Insert mode: <c-/>
-			--  - Normal mode: ?
-			--
-			-- This opens a window that shows you all of the keymaps for the current
-			-- Telescope picker. This is really useful to discover what Telescope can
-			-- do as well as how to actually do it!
-
-			-- [[ Configure Telescope ]]
-			-- See `:help telescope` and `:help telescope.setup()`
-			require("telescope").setup({
-				-- You can put your default mappings / updates / etc. in here
-				--  All the info you're looking for is in `:help telescope.setup()`
-				--
-				-- defaults = {
-				--   mappings = {
-				--     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-				--   },
-				-- },
-				-- pickers = {}
-				extensions = {
-					["ui-select"] = {
-						require("telescope.themes").get_dropdown(),
-					},
+			local builtin = require("statuscol.builtin")
+			require("statuscol").setup({
+				segments = {
+					{ text = { builtin.foldfunc }, click = "v:lua.ScFa" },
+					{ text = { " %s" }, click = "v:lua.ScSa" },
+					{ text = { builtin.lnumfunc, " " }, condition = { true, builtin.not_empty }, click = "v:lua.ScLa" },
 				},
 			})
-
-			-- Enable Telescope extensions if they are installed
-			pcall(require("telescope").load_extension, "fzf")
-			pcall(require("telescope").load_extension, "ui-select")
-
-			-- See `:help telescope.builtin`
-			local builtin = require("telescope.builtin")
-			vim.keymap.set("n", "<leader>sh", builtin.help_tags, { desc = "[S]earch [H]elp" })
-			vim.keymap.set("n", "<leader>sk", builtin.keymaps, { desc = "[S]earch [K]eymaps" })
-			vim.keymap.set("n", "<leader>sf", builtin.find_files, { desc = "[S]earch [F]iles" })
-			vim.keymap.set("n", "<leader>ss", builtin.builtin, { desc = "[S]earch [S]elect Telescope" })
-			vim.keymap.set("n", "<leader>sw", builtin.grep_string, { desc = "[S]earch current [W]ord" })
-			vim.keymap.set("n", "<leader>sg", builtin.live_grep, { desc = "[S]earch by [G]rep" })
-			vim.keymap.set("n", "<leader>sd", builtin.diagnostics, { desc = "[S]earch [D]iagnostics" })
-			vim.keymap.set("n", "<leader>sr", builtin.resume, { desc = "[S]earch [R]esume" })
-			vim.keymap.set("n", "<leader>s.", builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
-			vim.keymap.set("n", "<leader><leader>", builtin.buffers, { desc = "[ ] Find existing buffers" })
-
-			-- Slightly advanced example of overriding default behavior and theme
-			vim.keymap.set("n", "<leader>/", function()
-				-- You can pass additional configuration to Telescope to change the theme, layout, etc.
-				builtin.current_buffer_fuzzy_find(require("telescope.themes").get_dropdown({
-					winblend = 10,
-					previewer = false,
-				}))
-			end, { desc = "[/] Fuzzily search in current buffer" })
-
-			-- It's also possible to pass additional configuration options.
-			--  See `:help telescope.builtin.live_grep()` for information about particular keys
-			vim.keymap.set("n", "<leader>s/", function()
-				builtin.live_grep({
-					grep_open_files = true,
-					prompt_title = "Live Grep in Open Files",
-				})
-			end, { desc = "[S]earch [/] in Open Files" })
-
-			-- Shortcut for searching your Neovim configuration files
-			vim.keymap.set("n", "<leader>sn", function()
-				builtin.find_files({ cwd = vim.fn.stdpath("config") })
-			end, { desc = "[S]earch [N]eovim files" })
 		end,
 	},
-
+  --]]
 	{ -- LSP Configuration & Plugins
 		"neovim/nvim-lspconfig",
 		dependencies = {
@@ -667,6 +501,272 @@ require("lazy").setup({
 					end,
 				},
 			})
+		end,
+	},
+
+	{
+		"nvim-tree/nvim-tree.lua",
+		lazy = false,
+		dependencies = {
+			"nvim-tree/nvim-web-devicons",
+			"antosha417/nvim-lsp-file-operations",
+			"echasnovski/mini.base16",
+		},
+		version = "*",
+		opts = {
+			view = {
+				preserve_window_proportions = true,
+			},
+			actions = {
+				open_file = {
+					resize_window = true,
+				},
+			},
+			disable_netrw = true,
+			on_attach = function(bufnr)
+				local api = require("nvim-tree.api")
+				-- BEGIN_DEFAULT_ON_ATTACH
+				vim.keymap.set("n", "<C-]>", api.tree.change_root_to_node, mapOpts("CD", bufnr))
+				vim.keymap.set("n", "<C-e>", api.node.open.replace_tree_buffer, mapOpts("Open: In Place", bufnr))
+				vim.keymap.set("n", "<C-k>", api.node.show_info_popup, mapOpts("Info", bufnr))
+				vim.keymap.set("n", "<C-r>", api.fs.rename_sub, mapOpts("Rename: Omit Filename", bufnr))
+				--vim.keymap.set("n", "<C-t>", api.node.open.tab, mapOpts("Open: New Tab",bufnr))
+				vim.keymap.set("n", "<C-v>", api.node.open.vertical, mapOpts("Open: Vertical Split", bufnr))
+				vim.keymap.set("n", "<C-x>", api.node.open.horizontal, mapOpts("Open: Horizontal Split", bufnr))
+				vim.keymap.set("n", "<BS>", api.node.navigate.parent_close, mapOpts("Close Directory", bufnr))
+				vim.keymap.set("n", "<CR>", api.node.open.edit, mapOpts("Open", bufnr))
+				vim.keymap.set("n", "<Tab>", api.node.open.preview, mapOpts("Open Preview", bufnr))
+				vim.keymap.set("n", ">", api.node.navigate.sibling.next, mapOpts("Next Sibling", bufnr))
+				vim.keymap.set("n", "<", api.node.navigate.sibling.prev, mapOpts("Previous Sibling", bufnr))
+				vim.keymap.set("n", ".", api.node.run.cmd, mapOpts("Run Command", bufnr))
+				vim.keymap.set("n", "-", api.tree.change_root_to_parent, mapOpts("Up", bufnr))
+				vim.keymap.set("n", "a", api.fs.create, mapOpts("Create File Or Directory", bufnr))
+				vim.keymap.set("n", "bd", api.marks.bulk.delete, mapOpts("Delete Bookmarked", bufnr))
+				vim.keymap.set("n", "bt", api.marks.bulk.trash, mapOpts("Trash Bookmarked", bufnr))
+				vim.keymap.set("n", "bmv", api.marks.bulk.move, mapOpts("Move Bookmarked", bufnr))
+				vim.keymap.set("n", "B", api.tree.toggle_no_buffer_filter, mapOpts("Toggle Filter: No Buffer", bufnr))
+				vim.keymap.set("n", "c", api.fs.copy.node, mapOpts("Copy", bufnr))
+				vim.keymap.set("n", "C", api.tree.toggle_git_clean_filter, mapOpts("Toggle Filter: Git Clean", bufnr))
+				vim.keymap.set("n", "[c", api.node.navigate.git.prev, mapOpts("Prev Git", bufnr))
+				vim.keymap.set("n", "]c", api.node.navigate.git.next, mapOpts("Next Git", bufnr))
+				vim.keymap.set("n", "d", api.fs.remove, mapOpts("Delete", bufnr))
+				vim.keymap.set("n", "D", api.fs.trash, mapOpts("Trash", bufnr))
+				vim.keymap.set("n", "E", api.tree.expand_all, mapOpts("Expand All", bufnr))
+				vim.keymap.set("n", "e", api.fs.rename_basename, mapOpts("Rename: Basename", bufnr))
+				vim.keymap.set("n", "]e", api.node.navigate.diagnostics.next, mapOpts("Next Diagnostic", bufnr))
+				vim.keymap.set("n", "[e", api.node.navigate.diagnostics.prev, mapOpts("Prev Diagnostic", bufnr))
+				vim.keymap.set("n", "F", api.live_filter.clear, mapOpts("Live Filter: Clear", bufnr))
+				vim.keymap.set("n", "f", api.live_filter.start, mapOpts("Live Filter: Start", bufnr))
+				vim.keymap.set("n", "g?", api.tree.toggle_help, mapOpts("Help", bufnr))
+				vim.keymap.set("n", "gy", api.fs.copy.absolute_path, mapOpts("Copy Absolute Path", bufnr))
+				vim.keymap.set("n", "ge", api.fs.copy.basename, mapOpts("Copy Basename", bufnr))
+				vim.keymap.set("n", "H", api.tree.toggle_hidden_filter, mapOpts("Toggle Filter: Dotfiles", bufnr))
+				vim.keymap.set("n", "I", api.tree.toggle_gitignore_filter, mapOpts("Toggle Filter: Git Ignore", bufnr))
+				vim.keymap.set("n", "J", api.node.navigate.sibling.last, mapOpts("Last Sibling", bufnr))
+				vim.keymap.set("n", "K", api.node.navigate.sibling.first, mapOpts("First Sibling", bufnr))
+				vim.keymap.set("n", "L", api.node.open.toggle_group_empty, mapOpts("Toggle Group Empty", bufnr))
+				vim.keymap.set(
+					"n",
+					"M",
+					api.tree.toggle_no_bookmark_filter,
+					mapOpts("Toggle Filter: No Bookmark", bufnr)
+				)
+				vim.keymap.set("n", "m", api.marks.toggle, mapOpts("Toggle Bookmark", bufnr))
+				vim.keymap.set("n", "o", api.node.open.edit, mapOpts("Open", bufnr))
+				vim.keymap.set("n", "O", api.node.open.no_window_picker, mapOpts("Open: No Window Picker", bufnr))
+				vim.keymap.set("n", "p", api.fs.paste, mapOpts("Paste", bufnr))
+				vim.keymap.set("n", "P", api.node.navigate.parent, mapOpts("Parent Directory", bufnr))
+				vim.keymap.set("n", "q", api.tree.close, mapOpts("Close", bufnr))
+				vim.keymap.set("n", "r", api.fs.rename, mapOpts("Rename", bufnr))
+				vim.keymap.set("n", "R", api.tree.reload, mapOpts("Refresh", bufnr))
+				vim.keymap.set("n", "s", api.node.run.system, mapOpts("Run System", bufnr))
+				vim.keymap.set("n", "S", api.tree.search_node, mapOpts("Search", bufnr))
+				vim.keymap.set("n", "u", api.fs.rename_full, mapOpts("Rename: Full Path", bufnr))
+				vim.keymap.set("n", "U", api.tree.toggle_custom_filter, mapOpts("Toggle Filter: Hidden", bufnr))
+				vim.keymap.set("n", "W", api.tree.collapse_all, mapOpts("Collapse", bufnr))
+				vim.keymap.set("n", "x", api.fs.cut, mapOpts("Cut", bufnr))
+				vim.keymap.set("n", "y", api.fs.copy.filename, mapOpts("Copy Name", bufnr))
+				vim.keymap.set("n", "Y", api.fs.copy.relative_path, mapOpts("Copy Relative Path", bufnr))
+				vim.keymap.set("n", "<2-LeftMouse>", api.node.open.edit, mapOpts("Open", bufnr))
+				vim.keymap.set("n", "<2-RightMouse>", api.tree.change_root_to_node, mapOpts("CD", bufnr))
+				-- END_DEFAULT_ON_ATTACH
+			end,
+		},
+	},
+	"tpope/vim-sleuth", -- Detect tabstop and shiftwidth automatically
+
+	-- NOTE: Plugins can also be added by using a table,
+	-- with the first argument being the link and the following
+	-- keys can be used to configure plugin behavior/loading/etc.
+	--
+	-- Use `opts = {}` to force a plugin to be loaded.
+	--
+	--  This is equivalent to:
+	--    require('Comment').setup({})
+
+	-- "gc" to comment visual regions/lines
+	{ "numToStr/Comment.nvim", opts = {} },
+
+	-- Here is a more advanced example where we pass configuration
+	-- options to `gitsigns.nvim`. This is equivalent to the following Lua:
+	--    require('gitsigns').setup({ ... })
+	--
+	-- See `:help gitsigns` to understand what the configuration keys do
+	{ -- Adds git related signs to the gutter, as well as utilities for managing changes
+		"lewis6991/gitsigns.nvim",
+		opts = {
+			signs = {
+				add = { text = "+" },
+				change = { text = "~" },
+				delete = { text = "_" },
+				topdelete = { text = "‾" },
+				changedelete = { text = "~" },
+			},
+		},
+	},
+
+	-- NOTE: Plugins can also be configured to run Lua code when they are loaded.
+	--
+	-- This is often very useful to both group configuration, as well as handle
+	-- lazy loading plugins that don't need to be loaded immediately at startup.
+	--
+	-- For example, in the following configuration, we use:
+	--  event = 'VimEnter'
+	--
+	-- which loads which-key before all the UI elements are loaded. Events can be
+	-- normal autocommands events (`:help autocmd-events`).
+	--
+	-- Then, because we use the `config` key, the configuration only runs
+	-- after the plugin has been loaded:
+	--  config = function() ... end
+
+	{ -- Useful plugin to show you pending keybinds.
+		"folke/which-key.nvim",
+		event = "VimEnter", -- Sets the loading event to 'VimEnter'
+		config = function() -- This is the function that runs, AFTER loading
+			require("which-key").setup()
+
+			-- Document existing key chains
+			require("which-key").register({
+				["<leader>c"] = { name = "[C]ode", _ = "which_key_ignore" },
+				["<leader>d"] = { name = "[D]ocument", _ = "which_key_ignore" },
+				["<leader>r"] = { name = "[R]ename", _ = "which_key_ignore" },
+				["<leader>s"] = { name = "[S]earch", _ = "which_key_ignore" },
+				["<leader>w"] = { name = "[W]orkspace", _ = "which_key_ignore" },
+				["<leader>t"] = { name = "[T]oggle", _ = "which_key_ignore" },
+			})
+		end,
+	},
+
+	-- NOTE: Plugins can specify dependencies.
+	--
+	-- The dependencies are proper plugin specifications as well - anything
+	-- you do for a plugin at the top level, you can do for a dependency.
+	--
+	-- Use the `dependencies` key to specify the dependencies of a particular plugin
+
+	{ -- Fuzzy Finder (files, lsp, etc)
+		"nvim-telescope/telescope.nvim",
+		event = "VimEnter",
+		branch = "0.1.x",
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			{ -- If encountering errors, see telescope-fzf-native README for installation instructions
+				"nvim-telescope/telescope-fzf-native.nvim",
+
+				-- `build` is used to run some command when the plugin is installed/updated.
+				-- This is only run then, not every time Neovim starts up.
+				build = "make",
+
+				-- `cond` is a condition used to determine whether this plugin should be
+				-- installed and loaded.
+				cond = function()
+					return vim.fn.executable("make") == 1
+				end,
+			},
+			{ "nvim-telescope/telescope-ui-select.nvim" },
+
+			-- Useful for getting pretty icons, but requires a Nerd Font.
+			{ "nvim-tree/nvim-web-devicons", enabled = vim.g.have_nerd_font },
+		},
+		config = function()
+			-- Telescope is a fuzzy finder that comes with a lot of different things that
+			-- it can fuzzy find! It's more than just a "file finder", it can search
+			-- many different aspects of Neovim, your workspace, LSP, and more!
+			--
+			-- The easiest way to use Telescope, is to start by doing something like:
+			--  :Telescope help_tags
+			--
+			-- After running this command, a window will open up and you're able to
+			-- type in the prompt window. You'll see a list of `help_tags` options and
+			-- a corresponding preview of the help.
+			--
+			-- Two important keymaps to use while in Telescope are:
+			--  - Insert mode: <c-/>
+			--  - Normal mode: ?
+			--
+			-- This opens a window that shows you all of the keymaps for the current
+			-- Telescope picker. This is really useful to discover what Telescope can
+			-- do as well as how to actually do it!
+
+			-- [[ Configure Telescope ]]
+			-- See `:help telescope` and `:help telescope.setup()`
+			require("telescope").setup({
+				-- You can put your default mappings / updates / etc. in here
+				--  All the info you're looking for is in `:help telescope.setup()`
+				--
+				-- defaults = {
+				--   mappings = {
+				--     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
+				--   },
+				-- },
+				-- pickers = {}
+				extensions = {
+					["ui-select"] = {
+						require("telescope.themes").get_dropdown(),
+					},
+				},
+			})
+
+			-- Enable Telescope extensions if they are installed
+			pcall(require("telescope").load_extension, "fzf")
+			pcall(require("telescope").load_extension, "ui-select")
+
+			-- See `:help telescope.builtin`
+			local builtin = require("telescope.builtin")
+			vim.keymap.set("n", "<leader>sh", builtin.help_tags, { desc = "[S]earch [H]elp" })
+			vim.keymap.set("n", "<leader>sk", builtin.keymaps, { desc = "[S]earch [K]eymaps" })
+			vim.keymap.set("n", "<leader>sf", builtin.find_files, { desc = "[S]earch [F]iles" })
+			vim.keymap.set("n", "<leader>ss", builtin.builtin, { desc = "[S]earch [S]elect Telescope" })
+			vim.keymap.set("n", "<leader>sw", builtin.grep_string, { desc = "[S]earch current [W]ord" })
+			vim.keymap.set("n", "<leader>sg", builtin.live_grep, { desc = "[S]earch by [G]rep" })
+			vim.keymap.set("n", "<leader>sd", builtin.diagnostics, { desc = "[S]earch [D]iagnostics" })
+			vim.keymap.set("n", "<leader>sr", builtin.resume, { desc = "[S]earch [R]esume" })
+			vim.keymap.set("n", "<leader>s.", builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
+			vim.keymap.set("n", "<leader><leader>", builtin.buffers, { desc = "[ ] Find existing buffers" })
+
+			-- Slightly advanced example of overriding default behavior and theme
+			vim.keymap.set("n", "<leader>/", function()
+				-- You can pass additional configuration to Telescope to change the theme, layout, etc.
+				builtin.current_buffer_fuzzy_find(require("telescope.themes").get_dropdown({
+					winblend = 10,
+					previewer = false,
+				}))
+			end, { desc = "[/] Fuzzily search in current buffer" })
+
+			-- It's also possible to pass additional configuration options.
+			--  See `:help telescope.builtin.live_grep()` for information about particular keys
+			vim.keymap.set("n", "<leader>s/", function()
+				builtin.live_grep({
+					grep_open_files = true,
+					prompt_title = "Live Grep in Open Files",
+				})
+			end, { desc = "[S]earch [/] in Open Files" })
+
+			-- Shortcut for searching your Neovim configuration files
+			vim.keymap.set("n", "<leader>sn", function()
+				builtin.find_files({ cwd = vim.fn.stdpath("config") })
+			end, { desc = "[S]earch [N]eovim files" })
 		end,
 	},
 
