@@ -423,6 +423,14 @@ require("lazy").setup({
 							return
 						end
 					end
+
+					-- disable yamlls for helm files
+					if require("lspconfig").util.root_pattern("helm", "templates", "Dockerfile")(vim.fn.getcwd()) then
+						if client.name == "yamlls" then
+							client.stop()
+							return
+						end
+					end
 				end,
 			})
 
