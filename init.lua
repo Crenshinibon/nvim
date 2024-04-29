@@ -400,7 +400,7 @@ require("lazy").setup({
 
 					-- Disable tsserver and svelte lsp for deno projects
 					if require("lspconfig").util.root_pattern("deno.json", "import_map.json")(vim.fn.getcwd()) then
-						print("disable tsserver")
+						--print("disable tsserver")
 						if client.name == "tsserver" then
 							client.stop()
 							return
@@ -413,7 +413,7 @@ require("lazy").setup({
 
 					-- disable tsserver and denols for svelte projects
 					if require("lspconfig").util.root_pattern("svelte.config.js")(vim.fn.getcwd()) then
-						print("disable tsserver")
+						print("disable for svelte: ", client.name)
 						if client.name == "tsserver" then
 							client.stop()
 							return
