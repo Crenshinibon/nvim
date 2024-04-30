@@ -383,11 +383,11 @@ require("lazy").setup({
 					local isDeno = client
 						and require("lspconfig").util.root_pattern("deno.json", "import_map.json")(vim.fn.getcwd())
 
-					if client and client.server_capabilities.documentHighlightProvider and not isSvelte then
+					if client and client.server_capabilities.documentHighlightProvider then
 						vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
 							buffer = event.buf,
 							callback = function()
-								print(client.name)
+								--print(client.name)
 								vim.lsp.buf.document_highlight()
 							end,
 						})
@@ -425,19 +425,18 @@ require("lazy").setup({
 					-- disable tsserver and denols for svelte projects
 					if isSvelte then -- require("lspconfig").util.root_pattern("svelte.config.js")(vim.fn.getcwd()) then
 						--print("disable for svelte: ", client.name)
-						if client.name == "tsserver" then
-							client.stop()
-							return
-						end
+						--if client.name == "tsserver" then
+						--	client.stop()
+						--	return
+						--end
 						if client.name == "denols" then
 							client.stop()
 							return
 						end
 
-						local capabilities = vim.lsp.protocol.make_client_capabilities()
-						capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = true
+						--local capabilities = vim.lsp.protocol.make_client_capabilities()
+						--capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = true
 					end
-
 					-- disable yamlls for helm files
 					if require("lspconfig").util.root_pattern("helm", "templates", "Dockerfile")(vim.fn.getcwd()) then
 						if client.name == "yamlls" then
@@ -486,7 +485,7 @@ require("lazy").setup({
 				},
 				svelte = {
 					single_file_support = false,
-					filetypes = { "typescript", "javascript", "svelte", "html", "css" },
+					--filetypes = { "typescript", "javascript", "svelte", "html", "css" },
 					root_dir = require("lspconfig").util.root_pattern("svelte.config.js"),
 					on_attach = function(client, _)
 						-- this works: print("something")
