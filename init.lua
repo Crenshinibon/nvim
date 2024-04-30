@@ -7,6 +7,8 @@ vim.g.maplocalleader = " "
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
+vim.opt.laststatus = 3
+
 -- [[ Setting options ]]
 -- See `:help vim.opt`
 -- NOTE: You can change these options as you wish!
@@ -377,16 +379,19 @@ require("lazy").setup({
 					-- When you move your cursor, the highlights will be cleared (the second autocommand).
 					local client = vim.lsp.get_client_by_id(event.data.client_id)
 					if client and client.server_capabilities.documentHighlightProvider then
-						vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
-							buffer = event.buf,
-							callback = vim.lsp.buf.document_highlight,
-						})
+						if client.name ~= "svelte" then
+							vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+								buffer = event.buf,
+								callback = vim.lsp.buf.document_highlight,
+							})
 
-						vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
-							buffer = event.buf,
-							callback = vim.lsp.buf.clear_references,
-						})
+							vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+								buffer = event.buf,
+								callback = vim.lsp.buf.clear_references,
+							})
+						end
 					end
+					--
 
 					-- The following autocommand is used to enable inlay hints in your
 					-- code, if the language server you are using supports them
@@ -413,7 +418,7 @@ require("lazy").setup({
 
 					-- disable tsserver and denols for svelte projects
 					if require("lspconfig").util.root_pattern("svelte.config.js")(vim.fn.getcwd()) then
-						print("disable for svelte: ", client.name)
+						--print("disable for svelte: ", client.name)
 						if client.name == "tsserver" then
 							client.stop()
 							return
@@ -422,6 +427,9 @@ require("lazy").setup({
 							client.stop()
 							return
 						end
+
+						local capabilities = vim.lsp.protocol.make_client_capabilities()
+						capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = true
 					end
 
 					-- disable yamlls for helm files
@@ -1039,7 +1047,7 @@ require("lazy").setup({
 			auto_install = true,
 			highlight = {
 				enable = true,
-				-- disable = { "svelte" },
+				--disable = { "svelte" },
 				-- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
 				--  If you are experiencing weird indenting issues, add the language to
 				--  the list of additional_vim_regex_highlighting and disabled languages for indent.
