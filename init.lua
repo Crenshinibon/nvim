@@ -378,18 +378,24 @@ require("lazy").setup({
 					--
 					-- When you move your cursor, the highlights will be cleared (the second autocommand).
 					local client = vim.lsp.get_client_by_id(event.data.client_id)
-					if client and client.server_capabilities.documentHighlightProvider then
-						if client.name ~= "svelte" then
-							vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
-								buffer = event.buf,
-								callback = vim.lsp.buf.document_highlight,
-							})
+					local isSvelte = client
+						and require("lspconfig").util.root_pattern("svelte.config.js")(vim.fn.getcwd())
+					local isDeno = client
+						and require("lspconfig").util.root_pattern("deno.json", "import_map.json")(vim.fn.getcwd())
 
-							vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
-								buffer = event.buf,
-								callback = vim.lsp.buf.clear_references,
-							})
-						end
+					if client and client.server_capabilities.documentHighlightProvider and not isSvelte then
+						vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+							buffer = event.buf,
+							callback = function()
+								print(client.name)
+								vim.lsp.buf.document_highlight()
+							end,
+						})
+
+						vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+							buffer = event.buf,
+							callback = vim.lsp.buf.clear_references,
+						})
 					end
 					--
 
@@ -404,7 +410,7 @@ require("lazy").setup({
 					end
 
 					-- Disable tsserver and svelte lsp for deno projects
-					if require("lspconfig").util.root_pattern("deno.json", "import_map.json")(vim.fn.getcwd()) then
+					if isDeno then --require("lspconfig").util.root_pattern("deno.json", "import_map.json")(vim.fn.getcwd()) then
 						--print("disable tsserver")
 						if client.name == "tsserver" then
 							client.stop()
@@ -417,7 +423,7 @@ require("lazy").setup({
 					end
 
 					-- disable tsserver and denols for svelte projects
-					if require("lspconfig").util.root_pattern("svelte.config.js")(vim.fn.getcwd()) then
+					if isSvelte then -- require("lspconfig").util.root_pattern("svelte.config.js")(vim.fn.getcwd()) then
 						--print("disable for svelte: ", client.name)
 						if client.name == "tsserver" then
 							client.stop()
