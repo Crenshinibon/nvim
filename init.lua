@@ -382,6 +382,8 @@ require("lazy").setup({
 						and require("lspconfig").util.root_pattern("svelte.config.js")(vim.fn.getcwd())
 					local isDeno = client
 						and require("lspconfig").util.root_pattern("deno.json", "import_map.json")(vim.fn.getcwd())
+					local isTs = client
+						and require("lspconfig").util.root_pattern("package.json", "tsconfig.json")(vim.fn.getcwd())
 
 					if client and client.server_capabilities.documentHighlightProvider then
 						vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
@@ -422,7 +424,7 @@ require("lazy").setup({
 						end
 					end
 
-					-- disable tsserver and denols for svelte projects
+					-- disable denols for svelte projects
 					if isSvelte then -- require("lspconfig").util.root_pattern("svelte.config.js")(vim.fn.getcwd()) then
 						--print("disable for svelte: ", client.name)
 						--if client.name == "tsserver" then
@@ -437,6 +439,14 @@ require("lazy").setup({
 						--local capabilities = vim.lsp.protocol.make_client_capabilities()
 						--capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = true
 					end
+
+					if isTs and not isDeno then
+						if client.name == "denols" then
+							client.stop()
+							return
+						end
+					end
+
 					-- disable yamlls for helm files
 					if require("lspconfig").util.root_pattern("helm", "templates", "Dockerfile")(vim.fn.getcwd()) then
 						if client.name == "yamlls" then
