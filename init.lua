@@ -212,6 +212,11 @@ require("lazy").setup({
 		end,
 	},
 	{
+		"ecthelionvi/NeoComposer.nvim",
+		dependencies = { "kkharji/sqlite.lua" },
+		opts = {},
+	},
+	{
 		"kevinhwang91/nvim-ufo",
 		dependencies = { "kevinhwang91/promise-async" },
 		opts = {
