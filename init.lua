@@ -8,7 +8,7 @@ vim.g.maplocalleader = " "
 vim.g.have_nerd_font = true
 
 vim.opt.laststatus = 3
-vim.opt.tabstop = 4
+
 -- [[ Setting options ]]
 -- See `:help vim.opt`
 -- NOTE: You can change these options as you wish!
@@ -202,6 +202,14 @@ require("lazy").setup({
 			--"ibhagwan/fzf-lua",              -- optional
 		},
 		config = true,
+	},
+	{
+		"iamcco/markdown-preview.nvim",
+		cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+		ft = { "markdown" },
+		build = function()
+			vim.fn["mkdp#util#install"]()
+		end,
 	},
 	{
 		"kevinhwang91/nvim-ufo",
