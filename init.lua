@@ -98,6 +98,11 @@ vim.keymap.set("t", "jj", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 vim.keymap.set("x", "jj", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 vim.keymap.set("n", "<C-t>", ":NvimTreeToggle<cr>", { desc = "Toggle Tree", silent = true, noremap = true })
 
+vim.keymap.set("n", "g<Up>", "<Up>")
+vim.keymap.set("n", "g<Down>", "<Down>")
+vim.keymap.set("n", "<Up>", "g<Up>")
+vim.keymap.set("n", "<Down>", "g<Down>")
+
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
 -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
