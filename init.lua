@@ -9,12 +9,13 @@ vim.g.have_nerd_font = true
 
 vim.cmd([[
 function OpenMarkdownPreview (url)
-  execute "silent ! chrome --new-window --app=" . a:url
+  execute "silent ! chromium --new-window --app=" . a:url
 endfunction
 ]])
 
 vim.g.mkdp_browserfunc = "OpenMarkdownPreview"
 
+vim.opt.tabstop = 4
 vim.opt.laststatus = 3
 
 -- [[ Setting options ]]
