@@ -135,10 +135,13 @@ vim.keymap.set("t", "jj", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 vim.keymap.set("x", "jj", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 vim.keymap.set("n", "<C-t>", ":NvimTreeToggle<cr>", { desc = "Toggle Tree", silent = true, noremap = true })
 
-vim.keymap.set({ "i", "n", "v" }, "g<Up>", "<Up>")
-vim.keymap.set({ "i", "n", "v" }, "g<Down>", "<Down>")
-vim.keymap.set({ "i", "n", "v" }, "<Up>", "g<Up>")
-vim.keymap.set({ "i", "n", "v" }, "<Down>", "g<Down>")
+vim.keymap.set({ "n", "v" }, "g<Up>", "<Up>")
+vim.keymap.set({ "n", "v" }, "g<Down>", "<Down>")
+vim.keymap.set({ "n", "v" }, "<Up>", "g<Up>")
+vim.keymap.set({ "n", "v" }, "<Down>", "g<Down>")
+
+vim.keymap.set("i", "<Up>", "<C-o>g<Up>")
+vim.keymap.set("i", "<Down>", "<C-o>g<Down>")
 
 vim.keymap.set({ "n", "v", "i" }, "<F5>", function()
 	require("knap").process_once()
