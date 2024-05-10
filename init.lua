@@ -135,10 +135,10 @@ vim.keymap.set("t", "jj", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 vim.keymap.set("x", "jj", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 vim.keymap.set("n", "<C-t>", ":NvimTreeToggle<cr>", { desc = "Toggle Tree", silent = true, noremap = true })
 
-vim.keymap.set("n", "g<Up>", "<Up>")
-vim.keymap.set("n", "g<Down>", "<Down>")
-vim.keymap.set("n", "<Up>", "g<Up>")
-vim.keymap.set("n", "<Down>", "g<Down>")
+vim.keymap.set({ "i", "n", "v" }, "g<Up>", "<Up>")
+vim.keymap.set({ "i", "n", "v" }, "g<Down>", "<Down>")
+vim.keymap.set({ "i", "n", "v" }, "<Up>", "g<Up>")
+vim.keymap.set({ "i", "n", "v" }, "<Down>", "g<Down>")
 
 vim.keymap.set({ "n", "v", "i" }, "<F5>", function()
 	require("knap").process_once()
@@ -244,6 +244,14 @@ end
 -- NOTE: Here is where you install your plugins.
 require("lazy").setup({
 	-- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
+	{
+		"kylechui/nvim-surround",
+		event = "VeryLazy",
+		version = "*",
+		config = function()
+			require("nvim-surround").setup({})
+		end,
+	},
 	{
 		"frabjous/knap",
 	},
