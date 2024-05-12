@@ -168,6 +168,8 @@ vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right win
 vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
 vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
 
+vim.keymap.set("n", "gx", "<esc>:URLOpenUnderCursor<cr>")
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -257,6 +259,19 @@ require("lazy").setup({
 	},
 	{
 		"frabjous/knap",
+	},
+	-- lazy.nvim
+	{
+		"sontungexpt/url-open",
+		event = "VeryLazy",
+		cmd = "URLOpenUnderCursor",
+		config = function()
+			local status_ok, url_open = pcall(require, "url-open")
+			if not status_ok then
+				return
+			end
+			url_open.setup({})
+		end,
 	},
 	{
 		"NeogitOrg/neogit",
