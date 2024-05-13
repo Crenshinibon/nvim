@@ -10,11 +10,11 @@ vim.g.have_nerd_font = true
 vim.g.knap_settings = {
 	htmloutputext = "html",
 	htmltohtml = "none",
-	htmltohtmlviewerlaunch = "firefox --new-window %outputfile%",
+	htmltohtmlviewerlaunch = "live-server --quiet --browser=firefox --open=%outputfile% --watch=%outputfile% --wait=800",
 	htmltohtmlviewerrefresh = "none",
 	mdoutputext = "html",
 	mdtohtml = "pandoc --standalone %docroot% -o %outputfile%",
-	mdtohtmlviewerlaunch = "firefox --new-window %outputfile%",
+	mdtohtmlviewerlaunch = "live-server --quiet --browser=firefox --open=%outputfile% --watch=%outputfile% --wait=800", --"f%irefox --new-window %outputfile%",
 	mdtohtmlviewerrefresh = "none",
 	mdtopdf = "pandoc %docroot% -o %outputfile%",
 	mdtopdfviewerlaunch = "sioyek %outputfile%",
@@ -256,6 +256,12 @@ require("lazy").setup({
 		config = function()
 			require("nvim-surround").setup({})
 		end,
+	},
+	{
+		"barrett-ruth/live-server.nvim",
+		build = "pnpm add -g live-server",
+		cmd = { "LiveServerStart", "LiveServerStop" },
+		config = true,
 	},
 	{
 		"frabjous/knap",
