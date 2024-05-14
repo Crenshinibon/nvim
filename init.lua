@@ -46,6 +46,9 @@ vim.g.mkdp_browserfunc = "OpenMarkdownPreview"
 vim.opt.tabstop = 4
 vim.opt.laststatus = 3
 
+vim.g.neoterm_size = tostring(0.2 * vim.o.lines)
+vim.g.neoterm_default_mod = "botright"
+
 -- [[ Setting options ]]
 -- See `:help vim.opt`
 -- NOTE: You can change these options as you wish!
@@ -152,6 +155,10 @@ end)
 vim.keymap.set({ "n", "v", "i" }, "<F7>", function()
 	require("knap").toggle_autopreviewing()
 end)
+
+vim.keymap.set({ "n", "v" }, "<leader>crd", ":T pnpm run dev<cr>", { desc = "pnpm run dev" })
+vim.keymap.set({ "n", "v" }, "<leader>crt", ":T pnpm run test<cr>", { desc = "pnpm run test" })
+
 -- vim.keymap.set({'n','v','i'},'<F8>', function() require('knap').forward_jump() end)
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
@@ -658,7 +665,7 @@ require("lazy").setup({
 			})
 		end,
 	},
-
+	"kassio/neoterm",
 	{
 		"nvim-tree/nvim-tree.lua",
 		lazy = false,
