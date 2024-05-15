@@ -684,11 +684,14 @@ require("lazy").setup({
 					resize_window = true,
 				},
 			},
+			update_focused_file = {
+				enable = true,
+			},
 			disable_netrw = true,
 			on_attach = function(bufnr)
 				local api = require("nvim-tree.api")
 				-- BEGIN_DEFAULT_ON_ATTACH
-				vim.keymap.set("n", "<C-]>", api.tree.change_root_to_node, mapOpts("CD", bufnr))
+				vim.keymap.set("n", "<C-d>", api.tree.change_root_to_node, mapOpts("CD", bufnr))
 				vim.keymap.set("n", "<C-e>", api.node.open.replace_tree_buffer, mapOpts("Open: In Place", bufnr))
 				vim.keymap.set("n", "<C-k>", api.node.show_info_popup, mapOpts("Info", bufnr))
 				vim.keymap.set("n", "<C-r>", api.fs.rename_sub, mapOpts("Rename: Omit Filename", bufnr))
@@ -701,7 +704,7 @@ require("lazy").setup({
 				vim.keymap.set("n", ">", api.node.navigate.sibling.next, mapOpts("Next Sibling", bufnr))
 				vim.keymap.set("n", "<", api.node.navigate.sibling.prev, mapOpts("Previous Sibling", bufnr))
 				vim.keymap.set("n", ".", api.node.run.cmd, mapOpts("Run Command", bufnr))
-				vim.keymap.set("n", "-", api.tree.change_root_to_parent, mapOpts("Up", bufnr))
+				vim.keymap.set("n", "<C-u>", api.tree.change_root_to_parent, mapOpts("Up", bufnr))
 				vim.keymap.set("n", "a", api.fs.create, mapOpts("Create File Or Directory", bufnr))
 				vim.keymap.set("n", "bd", api.marks.bulk.delete, mapOpts("Delete Bookmarked", bufnr))
 				vim.keymap.set("n", "bt", api.marks.bulk.trash, mapOpts("Trash Bookmarked", bufnr))
