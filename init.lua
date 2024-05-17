@@ -681,7 +681,7 @@ require("lazy").setup({
 			},
 			actions = {
 				open_file = {
-					resize_window = true,
+					resize_window = false,
 				},
 			},
 			update_focused_file = {
@@ -948,6 +948,15 @@ require("lazy").setup({
 			vim.keymap.set("n", "<leader>sn", function()
 				builtin.find_files({ cwd = vim.fn.stdpath("config") })
 			end, { desc = "[S]earch [N]eovim files" })
+
+			vim.keymap.set(
+				"v",
+				"<C-f>",
+				--"zy<esc>:Telescope live_grep default_text=@z<cr>",
+				--"zy<cmd>exec 'Telescope grep_string default_text=' . escape(@z, ' ')<cr>",
+				"y<esc>:Telescope live_grep default_text=<c-r>0<cr>",
+				{ noremap = true, silent = true, desc = "Find selected text" }
+			)
 		end,
 	},
 
