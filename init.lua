@@ -38,12 +38,13 @@ vim.g.knap_settings = {
 vim.cmd([[
 function OpenMarkdownPreview (url)
   execute "silent ! chromium --new-window --app=" . a:url
-endfunction
+endfunction 
 ]])
 
 vim.g.mkdp_browserfunc = "OpenMarkdownPreview"
 
 vim.opt.tabstop = 4
+vim.opt.softtabstop = 4
 vim.opt.laststatus = 3
 
 vim.g.neoterm_size = tostring(0.2 * vim.o.lines)
