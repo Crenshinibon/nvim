@@ -213,6 +213,29 @@ local function mapOpts(desc, bufnr)
 	}
 end
 
+local openImages = function()
+	local api = require("nvim-tree.api")
+	local lib = require("nvim-tree.lib")
+	local node = lib.get_node_at_cursor()
+	if node then
+		--local node = api.node.open --state.tree:get_node()
+		--vim.notify(node.name .. node.type .. node.extension, vim.log.levels.INFO)
+		if
+			node.extension == "jpg"
+			or node.extension == "png"
+			or node.extension == "jpeg"
+			or node.extension == "pdf"
+		then
+			--vim.notify("FOUND image", vim.log.levels.INFO)
+			local command = vim.fn.has("mac") == 1 and "open" or "xdg-open"
+			vim.fn.jobstart(command .. " " .. node.absolute_path)
+		else
+			--vim.notify("NOT image " .. (node.extension or "nil"), vim.log.levels.INFO)
+			api.node.open.edit(node)
+		end
+	end
+end
+
 -- Custom fold text handler for ufo showing line count folded
 local ufohandler = function(virtText, lnum, endLnum, width, truncate)
 	local newVirtText = {}
@@ -700,7 +723,7 @@ require("lazy").setup({
 				vim.keymap.set("n", "<C-v>", api.node.open.vertical, mapOpts("Open: Vertical Split", bufnr))
 				vim.keymap.set("n", "<C-x>", api.node.open.horizontal, mapOpts("Open: Horizontal Split", bufnr))
 				vim.keymap.set("n", "<BS>", api.node.navigate.parent_close, mapOpts("Close Directory", bufnr))
-				vim.keymap.set("n", "<CR>", api.node.open.edit, mapOpts("Open", bufnr))
+				vim.keymap.set("n", "<CR>", openImages, mapOpts("Open", bufnr)) --api.node.open.edit, mapOpts("Open", bufnr))
 				vim.keymap.set("n", "<Tab>", api.node.open.preview, mapOpts("Open Preview", bufnr))
 				vim.keymap.set("n", ">", api.node.navigate.sibling.next, mapOpts("Next Sibling", bufnr))
 				vim.keymap.set("n", "<", api.node.navigate.sibling.prev, mapOpts("Previous Sibling", bufnr))
