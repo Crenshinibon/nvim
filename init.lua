@@ -536,45 +536,46 @@ require("lazy").setup({
 					-- code, if the language server you are using supports them
 					--
 					-- This may be unwanted, since they displace some of your code
-					if client and client.server_capabilities.inlayHintProvider and vim.lsp.inlay_hint then
-						map("<leader>th", function()
-							vim.lsp.inlay_hint.enable(0, not vim.lsp.inlay_hint.is_enabled())
-						end, "[T]oggle Inlay [H]ints")
-					end
-
-					-- Disable tsserver and svelte lsp for deno projects
-					if isDeno then --require("lspconfig").util.root_pattern("deno.json", "import_map.json")(vim.fn.getcwd()) then
-						--print("disable tsserver")
-						if client.name == "tsserver" then
-							client.stop()
-							return
-						end
-						if client.name == "svelte" then
-							client.stop()
-							return
-						end
-					end
-
-					-- disable denols for svelte projects
-					if isSvelte then -- require("lspconfig").util.root_pattern("svelte.config.js")(vim.fn.getcwd()) then
-						--print("disable for svelte: ", client.name)
-						--if client.name == "tsserver" then
-						--	client.stop()
-						--	return
-						--end
-						if client.name == "denols" then
-							client.stop()
-							return
+					--if client and client.server_capabilities.inlayHintProvider and vim.lsp.inlay_hint then
+					--map("<leader>th", function()
+					--	vim.lsp.inlay_hint.enable(0, not vim.lsp.inlay_hint.is_enabled())
+					--end, "[T]oggle Inlay [H]ints")
+					---end
+					if client then
+						-- Disable tsserver and svelte lsp for deno projects
+						if isDeno then --require("lspconfig").util.root_pattern("deno.json", "import_map.json")(vim.fn.getcwd()) then
+							--print("disable tsserver")
+							if client.name == "tsserver" then
+								client.stop()
+								return
+							end
+							if client.name == "svelte" then
+								client.stop()
+								return
+							end
 						end
 
-						--local capabilities = vim.lsp.protocol.make_client_capabilities()
-						--capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = true
-					end
+						-- disable denols for svelte projects
+						if isSvelte then -- require("lspconfig").util.root_pattern("svelte.config.js")(vim.fn.getcwd()) then
+							--print("disable for svelte: ", client.name)
+							--if client.name == "tsserver" then
+							--	client.stop()
+							--	return
+							--end
+							if client.name == "denols" then
+								client.stop()
+								return
+							end
 
-					if isTs and not isDeno then
-						if client.name == "denols" then
-							client.stop()
-							return
+							--local capabilities = vim.lsp.protocol.make_client_capabilities()
+							--capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = true
+						end
+
+						if isTs and not isDeno then
+							if client.name == "denols" then
+								client.stop()
+								return
+							end
 						end
 					end
 
@@ -720,8 +721,16 @@ require("lazy").setup({
 				vim.keymap.set("n", "<C-k>", api.node.show_info_popup, mapOpts("Info", bufnr))
 				vim.keymap.set("n", "<C-r>", api.fs.rename_sub, mapOpts("Rename: Omit Filename", bufnr))
 				--vim.keymap.set("n", "<C-t>", api.node.open.tab, mapOpts("Open: New Tab",bufnr))
-				vim.keymap.set("n", "<C-v>", api.node.open.vertical, mapOpts("Open: Vertical Split", bufnr))
-				vim.keymap.set("n", "<C-x>", api.node.open.horizontal, mapOpts("Open: Horizontal Split", bufnr))
+				vim.keymap.set("n", "<C-v>", api.node.open.vertical, mapOpts("[T]ree Open: Vertical Split", bufnr))
+				vim.keymap.set("n", "<leader>tv", api.node.open.vertical, mapOpts("[T]ree Open: Vertical Split", bufnr))
+				vim.keymap.set("n", "<C-x>", api.node.open.horizontal, mapOpts("[T]ree Open: Horizontal Split", bufnr))
+				vim.keymap.set(
+					"n",
+					"<leader>tx",
+					api.node.open.horizontal,
+					mapOpts("[T]ree Open: Horizontal Split", bufnr)
+				)
+				vim.keymap.set({ "n", "v" }, "<leader>tr", ":NvimTreeResize 35<cr>", mapOpts("[T]ree Resize", bufnr))
 				vim.keymap.set("n", "<BS>", api.node.navigate.parent_close, mapOpts("Close Directory", bufnr))
 				vim.keymap.set("n", "<CR>", openImages, mapOpts("Open", bufnr)) --api.node.open.edit, mapOpts("Open", bufnr))
 				vim.keymap.set("n", "<Tab>", api.node.open.preview, mapOpts("Open Preview", bufnr))
@@ -843,7 +852,7 @@ require("lazy").setup({
 				["<leader>r"] = { name = "[R]ename", _ = "which_key_ignore" },
 				["<leader>s"] = { name = "[S]earch", _ = "which_key_ignore" },
 				["<leader>w"] = { name = "[W]orkspace", _ = "which_key_ignore" },
-				["<leader>t"] = { name = "[T]oggle", _ = "which_key_ignore" },
+				["<leader>t"] = { name = "[T]ree", _ = "which_key_ignore" },
 			})
 		end,
 	},
