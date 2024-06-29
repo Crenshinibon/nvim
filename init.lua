@@ -721,16 +721,26 @@ require("lazy").setup({
 				vim.keymap.set("n", "<C-k>", api.node.show_info_popup, mapOpts("Info", bufnr))
 				vim.keymap.set("n", "<C-r>", api.fs.rename_sub, mapOpts("Rename: Omit Filename", bufnr))
 				--vim.keymap.set("n", "<C-t>", api.node.open.tab, mapOpts("Open: New Tab",bufnr))
-				vim.keymap.set("n", "<C-v>", api.node.open.vertical, mapOpts("[T]ree Open: Vertical Split", bufnr))
-				vim.keymap.set("n", "<leader>tv", api.node.open.vertical, mapOpts("[T]ree Open: Vertical Split", bufnr))
-				vim.keymap.set("n", "<C-x>", api.node.open.horizontal, mapOpts("[T]ree Open: Horizontal Split", bufnr))
+				vim.keymap.set("n", "<C-v>", api.node.open.vertical, mapOpts("[T]ree Open: [V]ertical Split", bufnr))
+				vim.keymap.set(
+					"n",
+					"<leader>tv",
+					api.node.open.vertical,
+					mapOpts("[T]ree Open: [V]ertical Split", bufnr)
+				)
+				vim.keymap.set(
+					"n",
+					"<C-x>",
+					api.node.open.horizontal,
+					mapOpts("[T]ree Open: [X]orizontal Split", bufnr)
+				)
 				vim.keymap.set(
 					"n",
 					"<leader>tx",
 					api.node.open.horizontal,
-					mapOpts("[T]ree Open: Horizontal Split", bufnr)
+					mapOpts("[T]ree Open: [X] Horizontal Split", bufnr)
 				)
-				vim.keymap.set({ "n", "v" }, "<leader>tr", ":NvimTreeResize 35<cr>", mapOpts("[T]ree Resize", bufnr))
+				vim.keymap.set({ "n", "v" }, "<leader>tr", ":NvimTreeResize 35<cr>", { desc = "[T]ree [R]esize" })
 				vim.keymap.set("n", "<BS>", api.node.navigate.parent_close, mapOpts("Close Directory", bufnr))
 				vim.keymap.set("n", "<CR>", openImages, mapOpts("Open", bufnr)) --api.node.open.edit, mapOpts("Open", bufnr))
 				vim.keymap.set("n", "<Tab>", api.node.open.preview, mapOpts("Open Preview", bufnr))
