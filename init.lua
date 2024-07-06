@@ -43,8 +43,10 @@ endfunction
 
 vim.g.mkdp_browserfunc = "OpenMarkdownPreview"
 
-vim.opt.tabstop = 4
-vim.opt.softtabstop = 4
+vim.opt.tabstop = 2
+vim.opt.softtabstop = 2
+vim.opt.shiftwidth = 2
+
 vim.opt.laststatus = 3
 
 vim.g.neoterm_size = tostring(0.2 * vim.o.lines)
