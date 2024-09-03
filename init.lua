@@ -7,34 +7,6 @@ vim.g.maplocalleader = " "
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
-vim.g.knap_settings = {
-	htmloutputext = "html",
-	htmltohtml = "none",
-	htmltohtmlviewerlaunch = "live-server --quiet --browser=firefox --open=%outputfile% --watch=%outputfile% --wait=800",
-	htmltohtmlviewerrefresh = "none",
-	mdoutputext = "html",
-	mdtohtml = "pandoc --standalone %docroot% -o %outputfile%",
-	mdtohtmlviewerlaunch = "live-server --quiet --browser=firefox --open=%outputfile% --watch=%outputfile% --wait=800", --"f%irefox --new-window %outputfile%",
-	mdtohtmlviewerrefresh = "none",
-	mdtopdf = "pandoc %docroot% -o %outputfile%",
-	mdtopdfviewerlaunch = "sioyek %outputfile%",
-	mdtopdfviewerrefresh = "none",
-	markdownoutputext = "html",
-	markdowntohtml = "pandoc --standalone %docroot% -o %outputfile%",
-	markdowntohtmlviewerlaunch = "firefox --new-window %outputfile%",
-	markdowntohtmlviewerrefresh = "none",
-	markdowntopdf = "pandoc %docroot% -o %outputfile%",
-	markdowntopdfviewerlaunch = "sioyek %outputfile%",
-	markdowntopdfviewerrefresh = "none",
-	texoutputext = "pdf",
-	textopdf = "pdflatex -interaction=batchmode -halt-on-error -synctex=1 %docroot%",
-	textopdfviewerlaunch = "sioyek --inverse-search 'nvim --headless -es --cmd \"lua require('\"'\"'knaphelper'\"'\"').relayjump('\"'\"'%servername%'\"'\"','\"'\"'%1'\"'\"',%2,%3)\"' --new-window %outputfile%",
-	textopdfviewerrefresh = "none",
-	textopdfforwardjump = "sioyek --inverse-search 'nvim --headless -es --cmd \"lua require('\"'\"'knaphelper'\"'\"').relayjump('\"'\"'%servername%'\"'\"','\"'\"'%1'\"'\"',%2,%3)\"' --reuse-window --forward-search-file %srcfile% --forward-search-line %line% %outputfile%",
-	textopdfshorterror = 'A=%outputfile% ; LOGFILE="${A%.pdf}.log" ; rubber-info "$LOGFILE" 2>&1 | head -n 1',
-	delay = 250,
-}
-
 vim.cmd([[
 function OpenMarkdownPreview (url)
   execute "silent ! chromium --new-window --app=" . a:url
@@ -156,20 +128,9 @@ vim.keymap.set({ "n", "v" }, "<Down>", "g<Down>")
 vim.keymap.set("i", "<Up>", "<C-o>g<Up>")
 vim.keymap.set("i", "<Down>", "<C-o>g<Down>")
 
-vim.keymap.set({ "n", "v", "i" }, "<F5>", function()
-	require("knap").process_once()
-end)
-vim.keymap.set({ "n", "v", "i" }, "<F6>", function()
-	require("knap").close_viewer()
-end)
-vim.keymap.set({ "n", "v", "i" }, "<F7>", function()
-	require("knap").toggle_autopreviewing()
-end)
-
 vim.keymap.set({ "n", "v" }, "<leader>crd", ":T pnpm run dev<cr>", { desc = "pnpm run dev" })
 vim.keymap.set({ "n", "v" }, "<leader>crt", ":T pnpm run test<cr>", { desc = "pnpm run test" })
 
--- vim.keymap.set({'n','v','i'},'<F8>', function() require('knap').forward_jump() end)
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
 -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
@@ -303,9 +264,6 @@ require("lazy").setup({
 		cmd = { "LiveServerStart", "LiveServerStop" },
 		config = true,
 	},
-	{
-		"frabjous/knap",
-	},
 	-- lazy.nvim
 	{
 		"sontungexpt/url-open",
@@ -318,17 +276,6 @@ require("lazy").setup({
 			end
 			url_open.setup({})
 		end,
-	},
-	{
-		"NeogitOrg/neogit",
-		dependencies = {
-			"nvim-lua/plenary.nvim", -- required
-			"sindrets/diffview.nvim", -- optional - Diff integration
-			-- Only one of these is needed, not both.
-			"nvim-telescope/telescope.nvim", -- optional
-			--"ibhagwan/fzf-lua",              -- optional
-		},
-		config = true,
 	},
 	{
 		"iamcco/markdown-preview.nvim",
