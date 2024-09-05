@@ -7,14 +7,6 @@ vim.g.maplocalleader = " "
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
 
-vim.cmd([[
-function OpenMarkdownPreview (url)
-  execute "silent ! chromium --new-window --app=" . a:url
-endfunction 
-]])
-
-vim.g.mkdp_browserfunc = "OpenMarkdownPreview"
-
 vim.opt.tabstop = 2
 vim.opt.softtabstop = 2
 vim.opt.shiftwidth = 2
