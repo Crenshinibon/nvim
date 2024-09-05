@@ -490,10 +490,10 @@ require("lazy").setup({
 					--end, "[T]oggle Inlay [H]ints")
 					---end
 					if client then
-						-- Disable tsserver and svelte lsp for deno projects
+						-- Disable ts_ls and svelte lsp for deno projects
 						if isDeno then --require("lspconfig").util.root_pattern("deno.json", "import_map.json")(vim.fn.getcwd()) then
-							--print("disable tsserver")
-							if client.name == "tsserver" then
+							--print("disable ts_ls")
+							if client.name == "ts_ls" then
 								client.stop()
 								return
 							end
@@ -506,7 +506,7 @@ require("lazy").setup({
 						-- disable denols for svelte projects
 						if isSvelte then -- require("lspconfig").util.root_pattern("svelte.config.js")(vim.fn.getcwd()) then
 							--print("disable for svelte: ", client.name)
-							--if client.name == "tsserver" then
+							--if client.name == "ts_ls" then
 							--	client.stop()
 							--	return
 							--end
@@ -564,8 +564,8 @@ require("lazy").setup({
 				-- Some languages (like typescript) have entire language plugins that can be useful:
 				--    https://github.com/pmizio/typescript-tools.nvim
 				--
-				-- But for many setups, the LSP (`tsserver`) will work just fine
-				tsserver = {
+				-- But for many setups, the LSP (`ts_ls`) will work just fine
+				ts_ls = {
 					single_file_support = false,
 					root_dir = require("lspconfig").util.root_pattern("package.json"),
 				},
@@ -630,7 +630,7 @@ require("lazy").setup({
 						local server = servers[server_name] or {}
 						-- This handles overriding only values explicitly passed
 						-- by the server configuration above. Useful when disabling
-						-- certain features of an LSP (for example, turning off formatting for tsserver)
+						-- certain features of an LSP (for example, turning off formatting for ts_ls)
 						server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
 						require("lspconfig")[server_name].setup(server)
 					end,
