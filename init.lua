@@ -244,6 +244,27 @@ end
 require("lazy").setup({
 	-- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
 	{
+		{
+			"nvim-neotest/neotest",
+			dependencies = {
+				"thenbe/neotest-playwright",
+				"nvim-neotest/nvim-nio",
+				"nvim-lua/plenary.nvim",
+				"antoinemadec/FixCursorHold.nvim",
+				"nvim-treesitter/nvim-treesitter",
+			},
+			config = function()
+				require("neotest").setup({
+					adapters = {
+						require("neotest-playwright").adapter({
+							persist_project_selection = true,
+							enable_dynamic_test_discovery = true,
+							preset = "headed",
+						}),
+					},
+				})
+			end,
+		},
 		"chrisgrieser/nvim-recorder",
 		dependencies = "rcarriga/nvim-notify", -- optional
 		opts = {
