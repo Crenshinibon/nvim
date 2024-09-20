@@ -124,6 +124,12 @@ vim.keymap.set("i", "<Down>", "<C-o>g<Down>")
 vim.keymap.set({ "n", "v" }, "<leader>crd", ":T pnpm run dev<cr>", { desc = "pnpm run dev" })
 vim.keymap.set({ "n", "v" }, "<leader>crt", ":T pnpm run test<cr>", { desc = "pnpm run test" })
 
+vim.keymap.set({ "n", "v" }, "<leader>crp", function()
+	local f = vim.fn.expand("%:t") -- string.gsub(vim.api.nvim_buf_get_name(0), vim.loop.cwd(), '')
+	local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
+	vim.cmd.T("npx playwright test " .. f .. ":" .. row .. " --debug")
+end, { desc = "playwright debug current test" })
+
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
 -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
@@ -243,27 +249,27 @@ end
 -- NOTE: Here is where you install your plugins.
 require("lazy").setup({
 	-- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
+	"mfussenegger/nvim-dap",
+	"rcarriga/nvim-dap-ui",
+	"theHamsta/nvim-dap-virtual-text",
+	"nvim-neotest/nvim-nio",
+	{
+		"jay-babu/mason-nvim-dap.nvim",
+		opts = {
+			automatic_installation = true,
+			handlers = {},
+			ensure_installed = {},
+		},
+	},
 	{
 		{
 			"nvim-neotest/neotest",
 			dependencies = {
-				"thenbe/neotest-playwright",
 				"nvim-neotest/nvim-nio",
 				"nvim-lua/plenary.nvim",
 				"antoinemadec/FixCursorHold.nvim",
 				"nvim-treesitter/nvim-treesitter",
 			},
-			config = function()
-				require("neotest").setup({
-					adapters = {
-						require("neotest-playwright").adapter({
-							persist_project_selection = true,
-							enable_dynamic_test_discovery = true,
-							preset = "headed",
-						}),
-					},
-				})
-			end,
 		},
 		"chrisgrieser/nvim-recorder",
 		dependencies = "rcarriga/nvim-notify", -- optional
@@ -884,9 +890,8 @@ require("lazy").setup({
 		},
 		keys = {
 			{ "<leader>c", group = "[C]ode" },
-			{ "<leader>c_", hidden = true },
 			{ "<leader>cr", group = "[C]ode [R]un" },
-			{ "<leader>cr_", hidden = true },
+			{ "<leader>cp", group = "[C]ode [P]laywright" },
 			{ "<leader>d", group = "[D]ocument" },
 			{ "<leader>d_", hidden = true },
 			{ "<leader>r", group = "[R]ename" },
