@@ -184,24 +184,17 @@ end
 
 local openImages = function()
 	local api = require("nvim-tree.api")
-	local lib = require("nvim-tree.lib")
-	local node = lib.get_node_at_cursor()
-	if node then
-		--local node = api.node.open --state.tree:get_node()
-		--vim.notify(node.name .. node.type .. node.extension, vim.log.levels.INFO)
-		if
-			node.extension == "jpg"
-			or node.extension == "png"
-			or node.extension == "jpeg"
-			or node.extension == "pdf"
-		then
-			--vim.notify("FOUND image", vim.log.levels.INFO)
-			local command = vim.fn.has("mac") == 1 and "open" or "xdg-open"
-			vim.fn.jobstart(command .. " " .. node.absolute_path)
-		else
-			--vim.notify("NOT image " .. (node.extension or "nil"), vim.log.levels.INFO)
-			api.node.open.edit(node)
-		end
+	--local lib = require("nvim-tree.lib")
+	--local node = lib.get_node_at_cursor()
+	local node = api.node.open --state.tree:get_node()
+	--vim.notify(node.name .. node.type .. node.extension, vim.log.levels.INFO)
+	if node.extension == "jpg" or node.extension == "png" or node.extension == "jpeg" or node.extension == "pdf" then
+		--vim.notify("FOUND image", vim.log.levels.INFO)
+		local command = vim.fn.has("mac") == 1 and "open" or "xdg-open"
+		vim.fn.jobstart(command .. " " .. node.absolute_path)
+	else
+		--vim.notify("NOT image " .. (node.extension or "nil"), vim.log.levels.INFO)
+		api.node.open.edit(node)
 	end
 end
 
@@ -535,6 +528,9 @@ require("lazy").setup({
 					--  For example, in C this would take you to the header.
 					map("gD", vim.lsp.buf.declaration, "[G]oto [D]eclaration")
 
+					-- map("<leader>fF", require("telescope.builtin").find_files, "[f]ind [F]iles")
+					-- map("<leader>fG", require("telescope.builtin").live_grep, "[f]ind [G]rep")
+
 					-- The following two autocommands are used to highlight references of the
 					-- word under your cursor when your cursor rests there for a little while.
 					--    See `:help CursorHold` for information about when this is executed
@@ -774,7 +770,7 @@ require("lazy").setup({
 				)
 				vim.keymap.set({ "n", "v" }, "<leader>tr", ":NvimTreeResize 35<cr>", { desc = "[T]ree [R]esize" })
 				vim.keymap.set("n", "<BS>", api.node.navigate.parent_close, mapOpts("Close Directory", bufnr))
-				vim.keymap.set("n", "<CR>", openImages, mapOpts("Open", bufnr)) --api.node.open.edit, mapOpts("Open", bufnr))
+				vim.keymap.set("n", "<CR>", api.node.open.edit, mapOpts(bufnr)) --openImages, mapOpts("Open", bufnr)) --api.node.open.edit, mapOpts("Open", bufnr))
 				vim.keymap.set("n", "<Tab>", api.node.open.preview, mapOpts("Open Preview", bufnr))
 				vim.keymap.set("n", ">", api.node.navigate.sibling.next, mapOpts("Next Sibling", bufnr))
 				vim.keymap.set("n", "<", api.node.navigate.sibling.prev, mapOpts("Previous Sibling", bufnr))
