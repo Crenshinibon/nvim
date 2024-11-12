@@ -1,6 +1,6 @@
 -- Set <space> as the leader key
--- See `:help mapleader`
---  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
+-- See `:help mappleader`
+-- NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
 --
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
@@ -41,6 +41,9 @@ vim.opt.clipboard = "unnamedplus"
 
 -- Enable break indent
 vim.opt.breakindent = true
+
+-- Backspace
+--vim.opt.backspace = { "indent", "eol", "start" }
 
 -- Save undo history
 vim.opt.undofile = true
@@ -90,6 +93,8 @@ vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Go to previous [D]
 vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next [D]iagnostic message" })
 vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagnostic [E]rror messages" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
+
+--vim.keymap.set("i", "<Char-0x10><Char-0x2E>", "<Esc>xi")
 
 -- Open terminal at current files position
 vim.keymap.set("n", "<leader>tc", function()
@@ -246,31 +251,31 @@ require("lazy").setup({
 	"rcarriga/nvim-dap-ui",
 	"theHamsta/nvim-dap-virtual-text",
 	"nvim-neotest/nvim-nio",
-	{
-		"folke/noice.nvim",
-		event = "VeryLazy",
-		opts = {
-			views = {
-				cmdline_popup = {
-					position = {
-						row = -8,
-						col = "50%",
-					},
-					border = {
-						style = "rounded",
-						padding = { 2, 3 },
-					},
-					filter_options = {},
-					win_options = {
-						winhighlight = "NormalFloat:NormalFloat,FloatBorder:FloatBorder",
-					},
-				},
-			},
-		},
-		dependencies = {
-			"MunifTanjim/nui.nvim",
-		},
-	},
+	--{
+	--	"folke/noice.nvim",
+	--	event = "VeryLazy",
+	--	opts = {
+	--		views = {
+	--			cmdline_popup = {
+	--				position = {
+	--					row = -8,
+	--					col = "50%",
+	--				},
+	--				border = {
+	--					style = "rounded",
+	--					padding = { 2, 3 },
+	--				},
+	--				filter_options = {},
+	--				win_options = {
+	--					winhighlight = "NormalFloat:NormalFloat,FloatBorder:FloatBorder",
+	--				},
+	--			},
+	--		},
+	--	},
+	--	dependencies = {
+	--		"MunifTanjim/nui.nvim",
+	--	},
+	--},
 	{
 		"jay-babu/mason-nvim-dap.nvim",
 		opts = {
