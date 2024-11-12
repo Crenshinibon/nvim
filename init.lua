@@ -247,6 +247,31 @@ require("lazy").setup({
 	"theHamsta/nvim-dap-virtual-text",
 	"nvim-neotest/nvim-nio",
 	{
+		"folke/noice.nvim",
+		event = "VeryLazy",
+		opts = {
+			views = {
+				cmdline_popup = {
+					position = {
+						row = -8,
+						col = "50%",
+					},
+					border = {
+						style = "rounded",
+						padding = { 2, 3 },
+					},
+					filter_options = {},
+					win_options = {
+						winhighlight = "NormalFloat:NormalFloat,FloatBorder:FloatBorder",
+					},
+				},
+			},
+		},
+		dependencies = {
+			"MunifTanjim/nui.nvim",
+		},
+	},
+	{
 		"jay-babu/mason-nvim-dap.nvim",
 		opts = {
 			automatic_installation = true,
