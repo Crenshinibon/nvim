@@ -247,9 +247,30 @@ end
 -- NOTE: Here is where you install your plugins.
 require("lazy").setup({
 	-- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-	"mfussenegger/nvim-dap",
-	"rcarriga/nvim-dap-ui",
-	"theHamsta/nvim-dap-virtual-text",
+	{
+		"mfussenegger/nvim-dap",
+		lazy = true,
+		dependencies = {
+			"rcarriga/nvim-dap-ui",
+		},
+		keys = {
+			{
+				"<leader>d",
+				function()
+					require("dap").toggle_breakpoint()
+				end,
+			},
+			{
+				"<leader>c",
+				function()
+					requier("dap").continue()
+				end,
+			},
+		},
+		config = function()
+			require("dapui").setup()
+		end,
+	},
 	"nvim-neotest/nvim-nio",
 	{
 		"folke/noice.nvim",
