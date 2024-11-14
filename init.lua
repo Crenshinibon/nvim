@@ -243,7 +243,10 @@ end
 --
 --  To update plugins you can run
 --    :Lazy update
---
+--local map = function(keys, func, desc)
+--						vim.keymap.set("n", keys, func, { buffer = event.buf, desc = "LSP: " .. desc })
+--					end
+
 -- NOTE: Here is where you install your plugins.
 require("lazy").setup({
 	-- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
@@ -255,16 +258,32 @@ require("lazy").setup({
 		},
 		keys = {
 			{
-				"<leader>d",
+				"<leader>db",
 				function()
 					require("dap").toggle_breakpoint()
 				end,
+				desc = "[D]ebug [B]reakpoint",
 			},
 			{
-				"<leader>c",
+				"<leader>dc",
 				function()
-					requier("dap").continue()
+					require("dap").continue()
 				end,
+				desc = "[D]ebug [C]ontinue",
+			},
+			{
+				"<leader>di",
+				function()
+					require("dap").step_into()
+				end,
+				desc = "[D]ebug Step [I]nto",
+			},
+			{
+				"<leader>do",
+				function()
+					require("dap").step_over()
+				end,
+				desc = "[D]ebug Step [O]ver",
 			},
 		},
 		config = function()
@@ -939,8 +958,7 @@ require("lazy").setup({
 			{ "<leader>c", group = "[C]ode" },
 			{ "<leader>cr", group = "[C]ode [R]un" },
 			{ "<leader>cp", group = "[C]ode [P]laywright" },
-			{ "<leader>d", group = "[D]ocument" },
-			{ "<leader>d_", hidden = true },
+			{ "<leader>d", group = "[D]ebug/[D]ocument" },
 			{ "<leader>r", group = "[R]ename" },
 			{ "<leader>r_", hidden = true },
 			{ "<leader>s", group = "[S]earch" },
