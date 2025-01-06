@@ -363,6 +363,13 @@ require("lazy").setup({
 			dap.listeners.before.event_exited["dapui_config"] = dapui.close
 		end,
 	},
+	{
+		"rest-nvim/rest.nvim",
+	},
+	{
+		"kjuq/sixelview.nvim",
+		opts = {},
+	},
 	"nvim-neotest/nvim-nio",
 	{
 		"folke/noice.nvim",
