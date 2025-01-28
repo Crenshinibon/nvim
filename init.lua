@@ -112,8 +112,8 @@ end, { desc = "Open [t]erminal at [c]urrent dir" })
 -- vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
 vim.keymap.set("n", "jj", "<Esc>", { desc = "Press <Esc>" })
-vim.keymap.set("i", "jj", "<Esc>", { desc = "Exist insert mode" })
-vim.keymap.set("v", "jj", "<Esc>", { desc = "Exist insert mode" })
+vim.keymap.set("i", "jj", "<Esc>", { desc = "Exit insert mode" })
+vim.keymap.set("v", "jj", "<Esc>", { desc = "Exit insert mode" })
 vim.keymap.set("t", "jj", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 vim.keymap.set("x", "jj", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 vim.keymap.set("n", "<C-t>", ":NvimTreeToggle<cr>", { desc = "Toggle Tree", silent = true, noremap = true })
@@ -366,10 +366,6 @@ require("lazy").setup({
 	{
 		"rest-nvim/rest.nvim",
 	},
-	{
-		"kjuq/sixelview.nvim",
-		opts = {},
-	},
 	"nvim-neotest/nvim-nio",
 	{
 		"folke/noice.nvim",
@@ -497,14 +493,6 @@ require("lazy").setup({
 		end,
 	},
 	{
-		"iamcco/markdown-preview.nvim",
-		cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
-		ft = { "markdown" },
-		build = function()
-			vim.fn["mkdp#util#install"]()
-		end,
-	},
-	{
 		"ecthelionvi/NeoComposer.nvim",
 		dependencies = { "kkharji/sqlite.lua" },
 		opts = {},
@@ -551,7 +539,7 @@ require("lazy").setup({
 				dynamicRegistration = false,
 				lineFoldingOnly = true,
 			}
-			local language_servers = require("lspconfig").util._available_servers() -- or list servers manually like {'gopls', 'clangd'}
+			local language_servers = require("lspconfig").util.available_servers() -- or list servers manually like {'gopls', 'clangd'}
 			for _, ls in ipairs(language_servers) do
 				require("lspconfig")[ls].setup({
 					capabilities = capabilities,
@@ -686,6 +674,7 @@ require("lazy").setup({
 					--    See `:help CursorHold` for information about when this is executed
 					--
 					-- When you move your cursor, the highlights will be cleared (the second autocommand).
+
 					local client = vim.lsp.get_client_by_id(event.data.client_id)
 					local isSvelte = client
 						and require("lspconfig").util.root_pattern("svelte.config.js")(vim.fn.getcwd())
@@ -759,9 +748,11 @@ require("lazy").setup({
 
 					-- disable yamlls for helm files
 					if require("lspconfig").util.root_pattern("helm", "templates", "Dockerfile")(vim.fn.getcwd()) then
-						if client.name == "yamlls" then
-							client.stop()
-							return
+						if client then
+							if client.name == "yamlls" then
+								client.stop()
+								return
+							end
 						end
 					end
 				end,
