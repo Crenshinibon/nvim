@@ -187,22 +187,6 @@ local function mapOpts(desc, bufnr)
 	}
 end
 
-local openImages = function()
-	local api = require("nvim-tree.api")
-	--local lib = require("nvim-tree.lib")
-	--local node = lib.get_node_at_cursor()
-	local node = api.node.open --state.tree:get_node()
-	--vim.notify(node.name .. node.type .. node.extension, vim.log.levels.INFO)
-	if node.extension == "jpg" or node.extension == "png" or node.extension == "jpeg" or node.extension == "pdf" then
-		--vim.notify("FOUND image", vim.log.levels.INFO)
-		local command = vim.fn.has("mac") == 1 and "open" or "xdg-open"
-		vim.fn.jobstart(command .. " " .. node.absolute_path)
-	else
-		--vim.notify("NOT image " .. (node.extension or "nil"), vim.log.levels.INFO)
-		api.node.open.edit(node)
-	end
-end
-
 -- Custom fold text handler for ufo showing line count folded
 local ufohandler = function(virtText, lnum, endLnum, width, truncate)
 	local newVirtText = {}
@@ -251,119 +235,6 @@ end
 require("lazy").setup({
 	-- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
 	{
-		"mfussenegger/nvim-dap",
-		lazy = true,
-		dependencies = {
-			"rcarriga/nvim-dap-ui",
-			"mxsdev/nvim-dap-vscode-js",
-			{
-				"microsoft/vscode-js-debug",
-				version = "1.x",
-				build = "npm i && npm run compile vsDebugServerBundle && mv dist out",
-			},
-		},
-		keys = {
-			{
-				"<leader>db",
-				function()
-					require("dap").toggle_breakpoint()
-				end,
-				desc = "[D]ebug [B]reakpoint",
-			},
-			{
-				"<leader>dc",
-				function()
-					require("dap").continue()
-				end,
-				desc = "[D]ebug [C]ontinue",
-			},
-			{
-				"<leader>di",
-				function()
-					require("dap").step_into()
-				end,
-				desc = "[D]ebug Step [I]nto",
-			},
-			{
-				"<leader>do",
-				function()
-					require("dap").step_over()
-				end,
-				desc = "[D]ebug Step [O]ver",
-			},
-		},
-		config = function()
-			require("dap-vscode-js").setup({
-				debugger_path = vim.fn.stdpath("data") .. "/lazy/vscode-js-debug",
-				adapters = { "pwa-node", "pwa-chrome", "pwa-msedge", "node-terminal", "pwa-extensionHost" },
-			})
-
-			for _, language in ipairs({ "typescript", "javascript", "svelte" }) do
-				require("dap").configurations[language] = {
-					-- attach to a node process that has been started with
-					-- `--inspect` for longrunning tasks or `--inspect-brk` for short tasks
-					-- npm script -> `node --inspect-brk ./node_modules/.bin/vite dev`
-					{
-						-- use nvim-dap-vscode-js's pwa-node debug adapter
-						type = "pwa-node",
-						-- attach to an already running node process with --inspect flag
-						-- default port: 9222
-						request = "attach",
-						-- allows us to pick the process using a picker
-						processId = require("dap.utils").pick_process,
-						-- name of the debug action you have to select for this config
-						name = "Attach debugger to existing `node --inspect` process",
-						-- for compiled languages like TypeScript or Svelte.js
-						sourceMaps = true,
-						-- resolve source maps in nested locations while ignoring node_modules
-						resolveSourceMapLocations = {
-							"${workspaceFolder}/**",
-							"!**/node_modules/**",
-						},
-						-- path to src in vite based projects (and most other projects as well)
-						cwd = "${workspaceFolder}/src",
-						-- we don't want to debug code inside node_modules, so skip it!
-						skipFiles = { "${workspaceFolder}/node_modules/**/*.js" },
-					},
-					{
-						type = "pwa-chrome",
-						name = "Launch Chrome to debug client",
-						request = "launch",
-						url = "http://localhost:5173",
-						sourceMaps = true,
-						protocol = "inspector",
-						port = 9222,
-						webRoot = "${workspaceFolder}/src",
-						-- skip files from vite's hmr
-						skipFiles = { "**/node_modules/**/*", "**/@vite/*", "**/src/client/*", "**/src/*" },
-					},
-					-- only if language is javascript, offer this debug action
-					language == "javascript"
-							and {
-								-- use nvim-dap-vscode-js's pwa-node debug adapter
-								type = "pwa-node",
-								-- launch a new process to attach the debugger to
-								request = "launch",
-								-- name of the debug action you have to select for this config
-								name = "Launch file in new node process",
-								-- launch current file
-								program = "${file}",
-								cwd = "${workspaceFolder}",
-							}
-						or nil,
-				}
-			end
-
-			require("dapui").setup()
-			local dap, dapui = require("dap"), require("dapui")
-			dap.listeners.after.event_initialized["dapui_config"] = function()
-				dapui.open({ reset = true })
-			end
-			dap.listeners.before.event_terminated["dapui_config"] = dapui.close
-			dap.listeners.before.event_exited["dapui_config"] = dapui.close
-		end,
-	},
-	{
 		"rest-nvim/rest.nvim",
 	},
 	"nvim-neotest/nvim-nio",
@@ -390,14 +261,6 @@ require("lazy").setup({
 		},
 		dependencies = {
 			"MunifTanjim/nui.nvim",
-		},
-	},
-	{
-		"jay-babu/mason-nvim-dap.nvim",
-		opts = {
-			automatic_installation = true,
-			handlers = {},
-			ensure_installed = {},
 		},
 	},
 	{
@@ -911,7 +774,7 @@ require("lazy").setup({
 				)
 				vim.keymap.set({ "n", "v" }, "<leader>tr", ":NvimTreeResize 35<cr>", { desc = "[T]ree [R]esize" })
 				vim.keymap.set("n", "<BS>", api.node.navigate.parent_close, mapOpts("Close Directory", bufnr))
-				vim.keymap.set("n", "<CR>", api.node.open.edit, mapOpts(bufnr)) --openImages, mapOpts("Open", bufnr)) --api.node.open.edit, mapOpts("Open", bufnr))
+				vim.keymap.set("n", "<CR>", api.node.open.edit, mapOpts(bufnr))
 				vim.keymap.set("n", "<Tab>", api.node.open.preview, mapOpts("Open Preview", bufnr))
 				vim.keymap.set("n", ">", api.node.navigate.sibling.next, mapOpts("Next Sibling", bufnr))
 				vim.keymap.set("n", "<", api.node.navigate.sibling.prev, mapOpts("Previous Sibling", bufnr))
