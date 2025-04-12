@@ -1220,6 +1220,7 @@ require("lazy").setup({
 				lua = { "stylua" },
 				typescript = { "prettierd" },
 				javascript = { "prettierd" },
+				css = { "prettierd" },
 				go = { "gofmt" },
 				html = { "prettierd" },
 				svelte = { "prettierd" },
