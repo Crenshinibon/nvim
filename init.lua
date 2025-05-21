@@ -667,7 +667,7 @@ require("lazy").setup({
 							pattern = { "*.js", "*.ts" },
 							callback = function(ctx)
 								-- Here use ctx.match instead of ctx.file
-								client.notify("$/onDidChangeTsOrJsFile", { uri = ctx.file })
+								client.notify("$/onDidChangeTsOrJsFile", { uri = ctx.match })
 							end,
 						})
 					end,
